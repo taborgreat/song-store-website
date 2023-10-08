@@ -1,0 +1,75 @@
+const mongoose = require("mongoose");
+const Artist = require("./models/artist");
+const Genre = require("./models/genre");
+const Song = require("./models/song");
+var dotenv = require('dotenv').config();
+
+
+// Connect to MongoDB
+mongoose.connect(process.env.MONGO_URL, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+const db = mongoose.connection;
+
+// Handle connection errors
+db.on("error", console.error.bind(console, "MongoDB connection error:"));
+db.once("open", async () => {
+  console.log("Connected to MongoDB");
+
+  try {
+    // Create some sample data
+    const sampleGenres = [
+      { name: "Pop" },
+      { name: "Rock" },
+      { name: "Hip-Hop" },
+    ];
+
+    const sampleArtists = [
+      { username: "JohnDoe", bio: "A talented musician" },
+      { username: "JaneSmith", bio: "Singer-songwriter" },
+    ];
+
+    const sampleSongs = [
+      {
+        title: "Song 1",
+        artist: null, // Set the artist ObjectId here
+        key: "C Major",
+        bpm: "120",
+        genre: null, // Set the genre ObjectId here
+        description: "A great song",
+      },
+      {
+        title: "Song 2",
+        artist: null, // Set the artist ObjectId here
+        key: "G Major",
+        bpm: "90",
+        genre: null, // Set the genre ObjectId here
+        description: "Another awesome song",
+      },
+    ];
+
+    // Insert sample genres
+    const insertedGenres = await Genre.insertMany(sampleGenres);
+    console.log("Inserted genres:", insertedGenres);
+
+    // Insert sample artists
+    const insertedArtists = await Artist.insertMany(sampleArtists);
+    console.log("Inserted artists:", insertedArtists);
+
+    // Update the artist and genre ObjectId in the sample songs
+    sampleSongs[0].artist = insertedArtists[0]._id;
+    sampleSongs[0].genre = insertedGenres[0]._id;
+    sampleSongs[1].artist = insertedArtists[1]._id;
+    sampleSongs[1].genre = insertedGenres[1]._id;
+
+    // Insert sample songs
+    const insertedSongs = await Song.insertMany(sampleSongs);
+    console.log("Inserted songs:", insertedSongs);
+
+    // Close the database connection
+    mongoose.connection.close();
+  } catch (err) {
+    console.error("Error:", err);
+  }
+});

@@ -14,7 +14,7 @@ const SongSchema = new Schema({
 })
 
 SongSchema.virtual("url").get(function(){
-    return `catalog/song/$(this._id)`
+    return `/catalog/song/${this._id}`
 })
 
 module.exports = mongoose.model("Song", SongSchema);

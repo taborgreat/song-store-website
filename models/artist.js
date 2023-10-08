@@ -8,7 +8,7 @@ const ArtistSchema = new Schema({
 })
 
 ArtistSchema.virtual("url").get(function() {
-    return `/catalog/artist/$(this._id)`;
+    return `/catalog/artist/${this._id}`;
 });
 
 

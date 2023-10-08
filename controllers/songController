@@ -36,7 +36,20 @@ exports.song_list = asyncHandler(async (req,res,next) => {
 })
 
 exports.song_detail = asyncHandler(async(req,res,next)=> {
-    res.send(`song Details ${req.params.id}`)
+    const song = await Song.findById(req.params.id)
+        .populate("artist")
+        .populate("genre")
+        .exec();
+    if (song === null) {
+    
+        const err = new Error("Book not found");
+        err.status = 404;
+        return next(err);
+  }
+    res.render("song_detail", {
+        title: song.title,
+        song: song,
+    });
 })
 
 exports.song_create_get = asyncHandler(async(req,res,next)=> {

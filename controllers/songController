@@ -1,0 +1,64 @@
+const Song = require("../models/song");
+const Artist = require("../models/artist")
+const Genre = require("../models/genre")
+const asyncHandler = require("express-async-handler");
+
+
+exports.index = asyncHandler(async (req,res,next) =>{
+    const [
+        numSongs,
+        numArtists,
+        numGenres
+        //,number of songs sold
+    ] = await Promise.all([
+        Song.countDocuments({}).exec(),
+        Artist.countDocuments({}).exec(),
+        Genre.countDocuments({}).exec(),
+    ]);
+
+    res.render("index", {
+        title: "Song Store",
+        song_count: numSongs,
+        artist_count: numArtists,
+        genre_count: numGenres,
+    })
+});
+
+exports.song_list = asyncHandler(async (req,res,next) => {
+
+    const allSongs = await Song.find({}, "title artist key bpm genre")
+        .sort({ title: 1 })
+        .populate("artist")
+        .populate("genre")
+        .exec();
+
+    res.render("song_list", {title: "All Songs", song_list: allSongs })
+})
+
+exports.song_detail = asyncHandler(async(req,res,next)=> {
+    res.send(`song Details ${req.params.id}`)
+})
+
+exports.song_create_get = asyncHandler(async(req,res,next)=> {
+    res.send("song Create Get")
+})
+
+exports.song_create_post = asyncHandler(async(req,res,next)=> {
+    res.send("song Create Post")
+})
+
+exports.song_delete_get = asyncHandler(async(req,res,next)=> {
+    res.send("song delete Get")
+})
+
+exports.song_delete_post = asyncHandler(async(req,res,next)=> {
+    res.send("song delete Post")
+})
+
+exports.song_update_get = asyncHandler(async(req,res,next)=> {
+    res.send("song update Get")
+})
+
+exports.song_update_post = asyncHandler(async(req,res,next)=> {
+    res.send("song update Post")
+})

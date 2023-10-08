@@ -1,0 +1,41 @@
+const Artist = require("../models/artist");
+const asyncHandler = require("express-async-handler");
+
+
+exports.artist_list = asyncHandler(async (req,res,next) => {
+
+    const allArtists = await Artist.find().sort({family_name: 1}).exec();
+
+    res.render("artist_list", {
+        title: "All Artists",
+        artist_list: allArtists,
+    })
+})
+
+exports.artist_detail = asyncHandler(async(req,res,next)=> {
+    res.send(`artist Details ${req.params.id}`)
+})
+
+exports.artist_create_get = asyncHandler(async(req,res,next)=> {
+    res.send("artist Create Get")
+})
+
+exports.artist_create_post = asyncHandler(async(req,res,next)=> {
+    res.send("artist Create Post")
+})
+
+exports.artist_delete_get = asyncHandler(async(req,res,next)=> {
+    res.send("artist delete Get")
+})
+
+exports.artist_delete_post = asyncHandler(async(req,res,next)=> {
+    res.send("artist delete Post")
+})
+
+exports.artist_update_get = asyncHandler(async(req,res,next)=> {
+    res.send("artist update Get")
+})
+
+exports.artist_update_post = asyncHandler(async(req,res,next)=> {
+    res.send("artist update Post")
+})

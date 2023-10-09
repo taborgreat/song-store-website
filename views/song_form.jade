@@ -1,0 +1,41 @@
+extends layout
+
+block content
+  h1 Create Song
+  
+  form(method='POST' action='')
+    div.form-group
+      label(for='title') Title:
+      input#title.form-control(type='text' name='title' required='true' value=song ? song.title : '')
+    
+    div.form-group
+      label(for='artist') Artist:
+      select#artist.form-control(type='select' name='artist' required='true')
+        if artists && artists.length > 0
+          each artist in artists
+            option(value=artist._id selected=(song && song.artist && artist._id.toString() === song.artist._id.toString() ? 'selected' : false)) #{artist.username}
+        else
+          option(value='' selected='') No artists available
+    
+    div.form-group
+      label(for='key') Key:
+      input#key.form-control(type='text' name='key' value=song ? song.key : '')
+    
+    div.form-group
+      label(for='bpm') BPM:
+      input#bpm.form-control(type='text' name='bpm' value=song ? song.bpm : '')
+    
+    div.form-group
+      label(for='genre') Genre:
+      select#genre.form-control(type='select' name='genre')
+        if genres && genres.length > 0
+          each genre in genres
+            option(value=genre._id selected=(song && song.genre && genre._id.toString() === song.genre._id.toString() ? 'selected' : false)) #{genre.name}
+        else
+          option(value='' selected='') No genres available
+    
+    div.form-group
+      label(for='description') Description:
+      textarea#description.form-control(name='description' rows='4') #{song ? song.description : ''}
+    
+    button.btn.btn-primary(type='submit') Save

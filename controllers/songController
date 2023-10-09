@@ -2,6 +2,7 @@ const Song = require("../models/song");
 const Artist = require("../models/artist")
 const Genre = require("../models/genre")
 const asyncHandler = require("express-async-handler");
+const { body, validationResult } = require("express-validator");
 
 
 exports.index = asyncHandler(async (req,res,next) =>{
@@ -52,13 +53,86 @@ exports.song_detail = asyncHandler(async(req,res,next)=> {
     });
 })
 
-exports.song_create_get = asyncHandler(async(req,res,next)=> {
-    res.send("song Create Get")
-})
+exports.song_create_get = asyncHandler(async (req, res, next) => {
+    const [allArtists, allGenres] = await Promise.all([
+      Artist.find().exec(),
+      Genre.find().exec(),
+    ]);
+  
+    res.render("song_form", {
+      title: "Upload Song",
+      artists: allArtists,
+      genres: allGenres,
+    });
+  });
 
-exports.song_create_post = asyncHandler(async(req,res,next)=> {
-    res.send("song Create Post")
-})
+//
+exports.song_create_post = [
+   
+    (req, res, next) => {
+      if (!(req.body.genre instanceof Array)) {
+        if (typeof req.body.genre === "undefined") req.body.genre = [];
+        else req.body.genre = new Array(req.body.genre);
+      }
+      next();
+    },
+  
+    // Validate and sanitize fields.
+    body("title", "Title must not be empty.")
+      .trim()
+      .isLength({ min: 1 })
+      .escape(),
+    body("artist", "Artist must not be empty.")
+      .trim()
+      .isLength({ min: 1 })
+      .escape(),
+    body("desc", "Description must not be empty.")
+      .trim()
+      .isLength({ min: 1 })
+      .escape(),
+    body("key", "Key must not be empty").trim().isLength({ min: 1 }).escape(),
+    body("bpm", "bpm must not be empty").trim().isLength({ min: 1 }).escape(),
+    body("genre.*").escape(),
+    // Process request after validation and sanitization.
+  
+    asyncHandler(async (req, res, next) => {
+      // Extract the validation errors from a request.
+      const errors = validationResult(req);
+  
+      // Create a Book object with escaped and trimmed data.
+      const song = new Song({
+        title: req.body.title,
+        artist: req.body.artist,
+        description: req.body.desc,
+        key: req.body.isbn,
+        bpm: req.body.bpm,
+        genre: req.body.genre,
+      });
+  
+      if (!errors.isEmpty()) {
+        // There are errors. Render form again with sanitized values/error messages.
+  
+        // Get all authors and genres for form.
+        const [allArtists, allGenres] = await Promise.all([
+          Artist.find().exec(),
+          Genre.find().exec(),
+        ]);
+  
+
+        res.render("song_form", {
+          title: "Create song",
+          artists: allArtists,
+          genres: allGenres,
+          song: song,
+          errors: errors.array(),
+        });
+      } else {
+        // Data from form is valid. Save book.
+        await song.save();
+        res.redirect(song.url);
+      }
+    }),
+  ];
 
 exports.song_delete_get = asyncHandler(async(req,res,next)=> {
     res.send("song delete Get")

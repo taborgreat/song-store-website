@@ -2,5 +2,13 @@ extends layout
 
 block content 
 
-h1= song.title
+  h1= song.title
 
+  p #[strong Artist: ]
+    a(href=song.artist.url) #{song.artist.username}
+  p #[strong Description:] #{song.description}
+  p #[strong Key:] #{song.key}
+  p #[strong BPM:] #{song.bpm}
+  
+  p #[strong Genre: ]
+    a(href=song.genre.url) #{song.genre.name}

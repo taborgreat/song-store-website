@@ -1,7 +1,7 @@
 extends layout
 
 block content
-  h1 Create Song
+  h1= title
   
   form(method='POST' action='')
     div.form-group
@@ -36,6 +36,11 @@ block content
     
     div.form-group
       label(for='description') Description:
-      textarea#description.form-control(name='description' rows='4') #{song ? song.description : ''}
+      textarea#desc.form-control(name='desc' rows='4') #{song ? song.description : ''}
     
     button.btn.btn-primary(type='submit') Save
+
+     if errors 
+       ul 
+        for error in errors 
+          li!=error.msg

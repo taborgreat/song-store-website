@@ -11,8 +11,8 @@ block content
     dl 
       each song in genre_songs 
         dt 
-          a(href=song.url)  song.title
-        dd #{book.summary}
+          a(href=song.url)  #{song.title}
+        dd #{song.description}
 
 
       else 

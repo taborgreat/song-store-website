@@ -43,12 +43,12 @@ exports.song_detail = asyncHandler(async(req,res,next)=> {
         .exec();
     if (song === null) {
     
-        const err = new Error("Book not found");
+        const err = new Error("Song not found");
         err.status = 404;
         return next(err);
   }
+  
     res.render("song_detail", {
-        title: song.title,
         song: song,
     });
 })
@@ -104,7 +104,7 @@ exports.song_create_post = [
         title: req.body.title,
         artist: req.body.artist,
         description: req.body.desc,
-        key: req.body.isbn,
+        key: req.body.key,
         bpm: req.body.bpm,
         genre: req.body.genre,
       });
@@ -120,7 +120,7 @@ exports.song_create_post = [
   
 
         res.render("song_form", {
-          title: "Create song",
+          title: "Creatsade song",
           artists: allArtists,
           genres: allGenres,
           song: song,

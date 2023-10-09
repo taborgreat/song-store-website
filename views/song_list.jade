@@ -8,9 +8,9 @@ block content
     each song in song_list
       li 
         a(href=song.url) #{song.title}
-        a(href=artist.url) #{song.artist}
+        a(href=song.artist.url) #{song.artist.username}
         | key: #{song.key} bpm: #{song.bpm}
-        a(href=genre.url) #{song.genre}
+        a(href=song.genre.url) #{song.genre.name}
 
 
     else

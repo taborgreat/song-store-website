@@ -2,7 +2,24 @@ const express = require("express");
 const router = express.Router();
 
 const multer = require('multer');
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({
+    dest: 'uploads/', // Destination folder for uploaded files
+    fileFilter: (req, file, cb) => {
+      // Supported audio MIME types
+      const supportedAudioTypes = ['audio/mpeg', 'audio/wav', 'audio/ogg', /* Add more as needed */];
+  
+      if (supportedAudioTypes.includes(file.mimetype)) {
+        return cb(null, true);
+      } else {
+        return cb(new Error('mp3, wav, or ogg that is less than 10mb'));
+      }
+    },
+    limits: {
+      fileSize: 1024 * 1024 * 10, // Limit file size to 10 MB
+    },
+  });
+  
+
 
 
 const artist_controller = require("../controllers/artistController");

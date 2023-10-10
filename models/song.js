@@ -9,6 +9,7 @@ const SongSchema = new Schema({
     bpm: { type: String, maxLength: 3 },
     genre: { type: Schema.Types.ObjectId, ref: "Genre"},
     description: { type: String, maxLength: 500 },
+    fileUrl: { type: String },
     //sale price, purchased by,
 
 })

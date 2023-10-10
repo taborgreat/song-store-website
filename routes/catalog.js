@@ -1,16 +1,22 @@
 const express = require("express");
 const router = express.Router();
 
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' });
+
+
 const artist_controller = require("../controllers/artistController");
 const genre_controller = require("../controllers/genreController");
 const song_controller = require("../controllers/songController");
+
+
 
 
 router.get("/", song_controller.index);
 
 router.get("/song/create", song_controller.song_create_get);
 
-router.post("/song/create", song_controller.song_create_post);
+router.post("/song/create", upload.single('songUpload'), song_controller.song_create_post);
 
 router.get("/song/:id/delete", song_controller.song_delete_get);
 

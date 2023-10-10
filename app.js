@@ -9,9 +9,13 @@ var dotenv = require('dotenv').config();
 
 var app = express();
 
+
+
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 const catalogRouter = require('./routes/catalog');
+
+app.use('/uploads', express.static('uploads'));
 
 // Set up mongoose connection
 const mongoose = require("mongoose");

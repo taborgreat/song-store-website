@@ -4,6 +4,9 @@ block content
 
   h1= song.title
 
+  audio(controls)
+    source(src=song.fileUrl type='audio/mpeg')
+
   p #[strong Artist: ]
     a(href=song.artist.url) #{song.artist.username}
   p #[strong Description:] #{song.description}

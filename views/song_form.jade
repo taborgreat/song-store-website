@@ -3,7 +3,7 @@ extends layout
 block content
   h1= title
   
-  form(method='POST' action='')
+  form(method='POST' action='' enctype="multipart/form-data")
     div.form-group
       label(for='title') Title:
       input#title.form-control(type='text' name='title' required='true' value=song ? song.title : '')
@@ -38,6 +38,10 @@ block content
       label(for='description') Description:
       textarea#desc.form-control(name='desc' rows='4') #{song ? song.description : ''}
     
+    div.form-group
+      label(for='songUpload') Upload Song: 
+      input(type="file" name="songUpload")
+
     button.btn.btn-primary(type='submit') Save
 
      if errors 

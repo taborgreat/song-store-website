@@ -86,11 +86,40 @@ exports.artist_create_get = (req, res, next) => {
       ];
 
 exports.artist_delete_get = asyncHandler(async(req,res,next)=> {
-    res.send("artist delete Get")
+    const [artist, allSongsByArtist] = await Promise.all([
+        Artist.findById(req.params.id).exec(),
+        Song.find({artist: req.params.id}, "title").exec(),
+    ])
+
+    if(artist===null){
+        res.redirect("/catalogs/artists")
+    }
+
+    res.render("artist_delete", {
+        title: "Delete Artist",
+        artist: artist,
+        artist_songs: allSongsByArtist,
+    })
 })
 
 exports.artist_delete_post = asyncHandler(async(req,res,next)=> {
-    res.send("artist delete Post")
+    const [artist, allSongsByArtist] = await Promise.all([
+        Artist.findById(req.params.id).exec(),
+        Song.find({artist: req.params.id}, "title").exec(),
+    ])
+
+    if(allSongsByArtist.length > 0){
+        res.render("artist_delete", {
+            title: "Delete Artist",
+            artist: artist,
+            artist_songs: allSongsByArtist,
+        })
+        return;
+    } else {
+        await Artist.findByIdAndRemove(req.body.artistid)
+        res.redirect("/catalog/artists")
+    }
+
 })
 
 exports.artist_update_get = asyncHandler(async(req,res,next)=> {

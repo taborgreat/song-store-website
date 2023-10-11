@@ -4,7 +4,10 @@ import * as THREE from '../../node_modules/three/build/three.module.js';
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer();
-renderer.setSize(window.innerWidth, window.innerHeight);
+
+scene.background = new THREE.Color(0x977FD9);
+
+renderer.setSize(window.innerWidth/2, window.innerHeight/2);
 document.body.appendChild(renderer.domElement);
 
 // Create a sphere with a custom shader material
@@ -14,8 +17,8 @@ const material = new THREE.MeshBasicMaterial({ color: 0xff00ff });
 const sphere = new THREE.Mesh(geometry, material);
 scene.add(sphere);
 
+
 // Create an AudioContext and Analyser
-const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 const audioListener = new THREE.AudioListener();
 camera.add(audioListener);
 
@@ -46,19 +49,18 @@ function animate() {
   // Get the average frequency
   const averageFrequency = analyser.getAverageFrequency();
   const getFrequencyData = analyser.getFrequencyData();
-
-  console.log(averageFrequency);
-  console.log(getFrequencyData);
+	
 
 
   // Modify the sphere's vertices and color based on the audio data
   sphere.scale.set(1 + averageFrequency / 500, 1 + averageFrequency / 200, 1 + averageFrequency / 200);
   sphere.rotation.x += averageFrequency / 1000;
   sphere.rotation.y += averageFrequency / 1000;
+  sphere.castShadow;
   sphere.material.color.setRGB(
-    sphere.scale.x-sphere.scale.y,
-    sphere.scale.y,
-	100 - averageFrequency,
+    sphere.scale.y-sphere.scale.x,
+    (sphere.scale.y)/1.5,
+	100 - averageFrequency
   );
 
   

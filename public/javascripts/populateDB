@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
-const Artist = require("./models/artist");
-const Genre = require("./models/genre");
-const Song = require("./models/song");
+const Artist = require("../../models/artist");
+const Genre = require("../../models/genre");
+const Song = require("../../models/song");
 var dotenv = require('dotenv').config();
 
 

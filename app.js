@@ -15,7 +15,10 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 const catalogRouter = require('./routes/catalog');
 
+
 app.use('/uploads', express.static('uploads'));
+app.use('/node_modules', express.static(__dirname + '/node_modules'));
+
 
 // Set up mongoose connection
 const mongoose = require("mongoose");
@@ -40,6 +43,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+
+
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);

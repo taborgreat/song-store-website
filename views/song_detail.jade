@@ -6,6 +6,15 @@ block content
 
   audio(controls)
     source(src=song.fileUrl type='audio/mpeg')
+ 
+
+  script.
+    const songData = !{JSON.stringify(song)};
+    // You can access the songData object in your script
+
+  script(type='module' src='/javascripts/audioVisualizer.mjs')
+  
+
 
   p #[strong Artist: ]
     a(href=song.artist.url) #{song.artist.username}
@@ -15,3 +24,6 @@ block content
   
   p #[strong Genre: ]
     a(href=song.genre.url) #{song.genre.name}
+  
+  button(id="playButton") Play
+ 

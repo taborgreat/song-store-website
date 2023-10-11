@@ -37,6 +37,8 @@ audioLoader.load(songData.fileUrl, function (buffer) {
 // Create an AudioAnalyser
 const analyser = new THREE.AudioAnalyser(audioSource, 32);
 
+
+
 // Animation function
 function animate() {
   requestAnimationFrame(animate);
@@ -45,15 +47,21 @@ function animate() {
   const averageFrequency = analyser.getAverageFrequency();
   const getFrequencyData = analyser.getFrequencyData();
 
+  console.log(averageFrequency);
+  console.log(getFrequencyData);
+
+
   // Modify the sphere's vertices and color based on the audio data
   sphere.scale.set(1 + averageFrequency / 500, 1 + averageFrequency / 200, 1 + averageFrequency / 200);
   sphere.rotation.x += averageFrequency / 1000;
   sphere.rotation.y += averageFrequency / 1000;
   sphere.material.color.setRGB(
-    averageFrequency,
-    Math.cos(getFrequencyData[5]/ 200),
-    Math.sin(getFrequencyData[4] / 300)
+    sphere.scale.x-sphere.scale.y,
+    sphere.scale.y,
+	100 - averageFrequency,
   );
+
+  
 
   renderer.render(scene, camera);
 }

@@ -17,6 +17,7 @@ const catalogRouter = require('./routes/catalog');
 
 
 app.use('/uploads', express.static('uploads'));
+app.use('/3dmodels', express.static('3dmodels'));
 app.use('/node_modules', express.static(__dirname + '/node_modules'));
 
 

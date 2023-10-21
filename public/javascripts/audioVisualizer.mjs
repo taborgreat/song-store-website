@@ -1,15 +1,38 @@
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+import { TWEEN } from 'https://unpkg.com/three@0.139.0/examples/jsm/libs/tween.module.min.js';
 
 // Create a scene, camera, and renderer
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+
+//window size
 const renderer = new THREE.WebGLRenderer();
+
+
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+window.addEventListener('resize', () => {
+  const newWidth = window.innerWidth;
+  const newHeight = window.innerHeight;
+  camera.aspect = newWidth / newHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(newWidth, newHeight);
+  renderer2d.setSize(newWidth,newHeight)
+});
+
+
 
 let frog;
 let lilypad;
-let materialFrog = new THREE.MeshStandardMaterial({ color: 0xff0000,  opacity:0.7, });
+let tongue;
 
+let songsView = false; //bool to see if in song view mode
+
+
+//load 3d models
 const loader = new GLTFLoader();
 
 loader.load(
@@ -17,35 +40,132 @@ loader.load(
 	function(glb)
 	{
 		frog = glb.scene;
-    frog.scale.set(10, 10, 10);
-	
-		frog.traverse((child) => {
-			if (child.isMesh) {
-				// Check if the child is a mesh (has a material)
-				child.material = materialFrog;
-				
-			}
-		});
+
+    //rotate frog 180 degrees
+    frog.position.y = 0.1
+    frog.rotation.y = Math.PI;
 		
 		scene.add(frog);
 	}
 )
-/*
+
 loader.load(
 	'/3dmodels/model/LILYPAD.glb',
 	function(glb)
 	{
 		lilypad = glb.scene;
-		lilypad.scale.set(10,10,10)
-		
+    lilypad.position.y = 0.02;
+
 		scene.add(lilypad);
 	}
 )
-*/
+
+
+
+
+//load 2d models
+
+const textureLoader = new THREE.TextureLoader();
+const buttonTexture = textureLoader.load('/3dmodels/textures/UI_SongsButton.png');
+scene.background = new THREE.Color(0x4d2c3a);
+
+//camera
+
+
+camera.position.set(0,2.5 ,9);
+camera.rotation.set(-0.1, 0, 0);
+
+
+
+
+//camera pan
+
+function smoothCameraPan(targetPosition, duration) {
+  const initialPosition = camera.position.clone();
+
+  const finalPosition = targetPosition.clone();
+  
+
+  const tween = new TWEEN.Tween(initialPosition)
+    .to(finalPosition, duration)
+    .onUpdate(function () {
+      camera.position.copy(initialPosition);
+    });
+
+  tween.start();
+}
+
+function smoothButton(targetPosition, duration) {
+  const initialPosition = button_songsMesh.position.clone();
+  const finalPosition = targetPosition.clone();
+
+  const tween = new TWEEN.Tween(initialPosition)
+    .to(finalPosition, duration)
+    .onUpdate(function () {
+      button_songsMesh.position.copy(initialPosition);
+    });
+
+  tween.start();
+}
+
+
+
+
+
+
+//add water
+const waterGeometry = new THREE.PlaneGeometry(140, 30); // Adjust the dimensions as needed
+const waterMaterial = new THREE.MeshBasicMaterial({ color: 0x34746b});
+const waterSurface = new THREE.Mesh(waterGeometry, waterMaterial);
+
+waterSurface.position.set(0, -10, -20); // Adjust the position as needed
+waterSurface.rotation.set(0,0,0)
+
+scene.add(waterSurface);
 
 // Create a raycaster to detect clicks
 var raycaster = new THREE.Raycaster();
 var mouse = new THREE.Vector2();
+
+
+
+//buttons
+
+
+
+const button_songsMaterial = new THREE.MeshBasicMaterial({ map: buttonTexture, transparent: true });
+const buttonGeometry = new THREE.PlaneGeometry(3,1);
+
+const button_songsMesh = new THREE.Mesh(buttonGeometry, button_songsMaterial);
+button_songsMesh.name = 'songButton';
+
+button_songsMesh.position.set(-3.2, 3.5, 5); // Set the position
+scene.add(button_songsMesh); // Add to the scene
+
+
+
+
+
+
+document.addEventListener('mousemove', (event) => {
+  // Calculate the mouse position in normalized device coordinates
+  const mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+  const mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+
+  // Convert mouse position to a 3D position in the scene
+  const frogCoords = new THREE.Vector3(-mouseX, -mouseY, -3); // 7 is the distance from the camera
+  const lilyPadCoords = new THREE.Vector3(mouseX, -mouseY, -20); // 7 is the distance from the camera
+
+  
+
+  // Set the frog's position to be the same as the camera, so it's always in front of the camera
+
+  // Make the frog look at the mouse
+  if(!songsView){
+    lilypad.lookAt(lilyPadCoords)
+    frog.lookAt(frogCoords);
+  }
+});
 
 // Add a click event listener
 window.addEventListener('click', onClick);
@@ -58,121 +178,93 @@ function onClick(event) {
   // Set the ray's origin and direction based on the mouse position
   raycaster.setFromCamera(mouse, camera);
 
+
+
   // Find objects intersected by the ray
   var intersects = raycaster.intersectObjects(scene.children, true);
 
   // If there are intersections, the clickable object was clicked
-  if (intersects.length > 0) {
-    console.log(intersects)
-  }
+   if (intersects.length > 0) {
+    const clickedObject = intersects[0].object;
+
+    let targetPosition;
+
+    if (clickedObject === button_songsMesh) {
+
+
+      if (!songsView) {
+  
+      button_songsMesh.scale.set(1.05,1.05,1.05);
+
+      targetPosition = new THREE.Vector3(-14, 7, 3);
+      
+      songsView = !songsView;
+
+      smoothCameraPan(
+        new THREE.Vector3(-8,4 ,9), // Target position
+        1000) // Duration in milliseconds 
+
+      } else {
+        button_songsMesh.scale.set(1.00,1.00,1.00);
+
+        targetPosition = new THREE.Vector3(-3.2, 3.5, 5);
+        
+        songsView = !songsView;
+
+        smoothCameraPan(
+          new THREE.Vector3(0,2.5 ,9), // Target position
+          1000) // Duration in milliseconds 
+        
+      }
+
+      // Smoothly move the button to the target position
+      smoothButton(targetPosition, 1000);
+
+      
+;
+    }}
 }
 
 
-renderer.setSize(window.innerWidth/2, window.innerHeight/2);
-document.body.appendChild(renderer.domElement);
 
-
-
+//lights
 const light = new THREE.PointLight( 0xffffff, 20, 100 );
-light.position.set( 30, 30, 30 );
+light.position.set( 10, 10, 10 );
 scene.add(light);
 const light2 = new THREE.AmbientLight( 0x404040, 0.04 ); // soft white light
 scene.add( light2 );
 
 
+//2d text
+const renderer2d = new CSS2DRenderer();
+renderer2d.setSize(window.innerWidth, window.innerHeight);
+renderer2d.domElement.style.position = 'absolute';
+renderer2d.domElement.style.top = '0';
+document.body.appendChild(renderer2d.domElement);
 
-// Create an AudioContext and Analyser
-const audioListener = new THREE.AudioListener();
-camera.add(audioListener);
-
-// Create an Audio source and connect it to the AudioContext
-const audioLoader = new THREE.AudioLoader();
-const audioSource = new THREE.Audio(audioListener);
-audioListener.add(audioSource);
-
-
-const playButton = document.getElementById('playButton');
-
-playButton.addEventListener('click', () => {
-audioLoader.load(songData.fileUrl, function (buffer) {
-  audioSource.setBuffer(buffer);
-  audioSource.setLoop(true);
-  audioSource.setVolume(1); // Adjust the volume as needed
-  audioSource.play();
-})});
-// Create an AudioAnalyser
-const analyser = new THREE.AudioAnalyser(audioSource, 32);
+const textDiv = document.getElementById('song-list');
+const label = new CSS2DObject(textDiv);
+label.position.set(-11, 3, 5); // Adjust the position as needed
+scene.add(label);
 
 
 
-const stars = [];
 
-function addStar (){
-	const geometry=new THREE.SphereGeometry(0.5,25,25);
-	const material = new THREE.MeshStandardMaterial({color: 0xffffff, emissive: 0xffffff})
-	const star = new THREE.Mesh(geometry,material);
-
-	const [x,y,z] = Array(3).fill().map(()=>THREE.MathUtils.randFloatSpread(150))
-	star.position.set(x,y,z);
-	const orbitSpeed = (Math.random() * (0.01 - 0.001) + 0.0004);
-
-	stars.push({ star, orbitSpeed });
-	scene.add(star);
-}
-
-Array(200).fill().forEach(addStar);
-
-// Animation function
 function animate() {
   requestAnimationFrame(animate);
 
-  // Get the average frequency
-const averageFrequency = analyser.getAverageFrequency();
-  const getFrequencyData = analyser.getFrequencyData();
+  TWEEN.update()
 
-  stars.forEach(({ star, orbitSpeed }) => {
-	const currSpeed = orbitSpeed/6 ;
-    const angle = Date.now() * currSpeed;
-    const radius = 85; // Adjust this to control the orbit radius
-    star.position.x = radius * Math.cos(angle);
-    star.position.y = radius * Math.sin(angle);
-	star.scale.set(1+orbitSpeed/3, 1+orbitSpeed/3,1+orbitSpeed/3)
-  });
-
-  frog.rotation.x -= (0.1 * averageFrequency) / 150;
-  frog.rotation.z -= averageFrequency / 100000;
-  /*
-  lilypad.rotation.x -= (0.1 * averageFrequency) / 150;
-  lilypad.rotation.z -= averageFrequency / 100000;
-  */
-  
-  
-  frog.scale.set(1 + getFrequencyData[0] / 15, 1 + getFrequencyData[1] / 15, 1 + getFrequencyData[2] / 15);
-  materialFrog.color.set(
-	getFrequencyData[4],
-    (frog.scale.y)/1.5,
-	100 - averageFrequency
-  )
-  
-
-  /*
-
-  
-
-  // Modify the sphere's vertices and color based on the audio data
-  sphere.scale.set(1 + averageFrequency / 1000, 1 + averageFrequency / 200, 1 + averageFrequency / 200);
-  sphere.rotation.x += averageFrequency / 1000;
-  sphere.rotation.y += averageFrequency / 1000;
-  sphere.castShadow;
- 
-
-  */
+  if(songsView){
+    frog.lookAt(12,-6,-15);
+  }
 
   renderer.render(scene, camera);
+  renderer2d.render(scene, camera);
 }
 
-// Camera setup
-camera.position.z = 60;
+
+
 
 // Start the animation
 animate();

@@ -1,12 +1,25 @@
 extends layout
 
 block content
-  h1= title
-  p Welcome to #[em SongStore], a place to buy and sell songs.
 
-  p The store has the following record counts: 
+  
 
-  ul
-    li #[strong Songs:] !{song_count}
-    li #[strong Artists:] !{artist_count}
-    li #[strong Genres:] !{genre_count}
+  div(id="song-list-container")
+    script(type='module' src='/javascripts/audioVisualizer.mjs')
+    div(id="song-list")
+      ul
+      each song in song_list
+        li 
+          a(href=song.url) #{song.title}
+          br
+          a(href=song.artist.url) #{song.artist.username}
+          br
+          br
+          hr
+
+
+
+      else
+        li There are no songs.
+
+ 

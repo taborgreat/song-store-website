@@ -7,23 +7,13 @@ const { body, validationResult } = require("express-validator");
 
 
 exports.index = asyncHandler(async (req,res,next) =>{
-    const [
-        numSongs,
-        numArtists,
-        numGenres
-        //,number of songs sold
-    ] = await Promise.all([
-        Song.countDocuments({}).exec(),
-        Artist.countDocuments({}).exec(),
-        Genre.countDocuments({}).exec(),
-    ]);
+  const allSongs = await Song.find({}, "title artist key bpm genre")
+  .sort({ title: 1 })
+  .populate("artist")
+  .populate("genre")
+  .exec();
 
-    res.render("index", {
-        title: "Song Store",
-        song_count: numSongs,
-        artist_count: numArtists,
-        genre_count: numGenres,
-    })
+  res.render("index", {song_list: allSongs })
 });
 
 exports.song_list = asyncHandler(async (req,res,next) => {

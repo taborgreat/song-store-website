@@ -44,6 +44,7 @@ loader.load(
     //rotate frog 180 degrees
     frog.position.y = 0.1
     frog.rotation.y = Math.PI;
+    frog.scale.set(1.5,1.5,1.5);
 		
 		scene.add(frog);
 	}
@@ -55,6 +56,7 @@ loader.load(
 	{
 		lilypad = glb.scene;
     lilypad.position.y = 0.02;
+    lilypad.scale.set(1.5,1.5,1.5);
 
 		scene.add(lilypad);
 	}
@@ -67,7 +69,46 @@ loader.load(
 
 const textureLoader = new THREE.TextureLoader();
 const buttonTexture = textureLoader.load('/3dmodels/textures/UI_SongsButton.png');
+buttonTexture.magFilter = THREE.NearestFilter;
+buttonTexture.minFilter = THREE.NearestFilter;
+const waterTextureMap = textureLoader.load('/3dmodels/textures/ANIM_waveTop.png');
+
+
+  //water tiles stuff 
+let currentWaterTile = 0;
+const waterTilesHorizontal = 8;
+const waterTilesVertical = 4;
+
+
+const waterOffsetX = (currentWaterTile % waterTilesHorizontal) / waterTilesHorizontal;
+const waterOffsetY = (waterTilesVertical - Math.floor(currentWaterTile / waterTilesHorizontal)- 1)/waterTilesVertical;
+waterTextureMap.offset.x = waterOffsetX;
+waterTextureMap.offset.y = waterOffsetY;
+
+waterTextureMap.repeat.set(1/waterTilesHorizontal, 1/waterTilesVertical)
+waterTextureMap.magFilter = THREE.NearestFilter;
+waterTextureMap.minFilter = THREE.NearestFilter;
+
 scene.background = new THREE.Color(0x4d2c3a);
+
+
+
+//2d text
+const renderer2d = new CSS2DRenderer();
+renderer2d.setSize(window.innerWidth, window.innerHeight);
+renderer2d.domElement.style.position = 'absolute';
+renderer2d.domElement.style.top = '0';
+document.body.appendChild(renderer2d.domElement);
+
+const textDiv = document.getElementById('song-list');
+const label = new CSS2DObject(textDiv);
+label.position.set(-7.5, 2.5, 5); // Adjust the position as needed
+label.visible = false;
+scene.add(label);
+
+
+
+
 
 //camera
 
@@ -118,10 +159,33 @@ const waterGeometry = new THREE.PlaneGeometry(140, 30); // Adjust the dimensions
 const waterMaterial = new THREE.MeshBasicMaterial({ color: 0x34746b});
 const waterSurface = new THREE.Mesh(waterGeometry, waterMaterial);
 
-waterSurface.position.set(0, -10, -20); // Adjust the position as needed
+waterSurface.position.set(0, -11, -20); // Adjust the position as needed
 waterSurface.rotation.set(0,0,0)
 
 scene.add(waterSurface);
+
+const waterSpriteMaterial = new THREE.SpriteMaterial({ map: waterTextureMap });
+
+
+
+
+
+
+
+// Add the sprites to the scene
+
+
+for(let i = -70; i < 80; i+=5){
+  const waterSprite = new THREE.Sprite(waterSpriteMaterial);
+  waterSprite.scale.set(5, 5, 5);
+  waterSprite.position.set(i, 6, -20);
+  scene.add(waterSprite);
+}
+
+
+
+
+
 
 // Create a raycaster to detect clicks
 var raycaster = new THREE.Raycaster();
@@ -153,12 +217,12 @@ document.addEventListener('mousemove', (event) => {
   const mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
 
   // Convert mouse position to a 3D position in the scene
-  const frogCoords = new THREE.Vector3(-mouseX, -mouseY, -3); // 7 is the distance from the camera
+  const frogCoords = new THREE.Vector3(-mouseX, -mouseY, -2); // 7 is the distance from the camera
   const lilyPadCoords = new THREE.Vector3(mouseX, -mouseY, -20); // 7 is the distance from the camera
 
   
 
-  // Set the frog's position to be the same as the camera, so it's always in front of the camera
+
 
   // Make the frog look at the mouse
   if(!songsView){
@@ -174,6 +238,10 @@ function onClick(event) {
   // Calculate the mouse coordinates based on the event
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+
+
+  
 
   // Set the ray's origin and direction based on the mouse position
   raycaster.setFromCamera(mouse, camera);
@@ -194,19 +262,19 @@ function onClick(event) {
 
       if (!songsView) {
   
-      button_songsMesh.scale.set(1.05,1.05,1.05);
-
-      targetPosition = new THREE.Vector3(-14, 7, 3);
+  
+      label.visible = true;
+      targetPosition = new THREE.Vector3(-7, 5, 6);
       
       songsView = !songsView;
 
       smoothCameraPan(
-        new THREE.Vector3(-8,4 ,9), // Target position
+        new THREE.Vector3(-5,4 ,9), // Target position
         1000) // Duration in milliseconds 
 
       } else {
-        button_songsMesh.scale.set(1.00,1.00,1.00);
-
+ 
+        label.visible = false;
         targetPosition = new THREE.Vector3(-3.2, 3.5, 5);
         
         songsView = !songsView;
@@ -221,7 +289,7 @@ function onClick(event) {
       smoothButton(targetPosition, 1000);
 
       
-;
+
     }}
 }
 
@@ -235,19 +303,6 @@ const light2 = new THREE.AmbientLight( 0x404040, 0.04 ); // soft white light
 scene.add( light2 );
 
 
-//2d text
-const renderer2d = new CSS2DRenderer();
-renderer2d.setSize(window.innerWidth, window.innerHeight);
-renderer2d.domElement.style.position = 'absolute';
-renderer2d.domElement.style.top = '0';
-document.body.appendChild(renderer2d.domElement);
-
-const textDiv = document.getElementById('song-list');
-const label = new CSS2DObject(textDiv);
-label.position.set(-11, 3, 5); // Adjust the position as needed
-scene.add(label);
-
-
 
 
 function animate() {
@@ -257,6 +312,20 @@ function animate() {
 
   if(songsView){
     frog.lookAt(12,-6,-15);
+  }
+
+
+  //animate water moving
+  if(currentWaterTile < 32){
+    const waterOffsetX = (currentWaterTile % waterTilesHorizontal) / waterTilesHorizontal;
+    const waterOffsetY = (waterTilesVertical - Math.floor(currentWaterTile / waterTilesHorizontal)- 1)/waterTilesVertical;
+    waterTextureMap.offset.x = waterOffsetX;
+    waterTextureMap.offset.y = waterOffsetY;
+    currentWaterTile+=1;
+    
+    
+  } else {
+    currentWaterTile = 0;
   }
 
   renderer.render(scene, camera);

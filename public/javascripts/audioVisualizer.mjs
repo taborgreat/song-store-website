@@ -27,6 +27,7 @@ window.addEventListener('resize', () => {
 
 let frog;
 let lilypad;
+let reed;
 let tongue;
 
 let songsView = false; //bool to see if in song view mode
@@ -42,7 +43,7 @@ loader.load(
 		frog = glb.scene;
 
     //rotate frog 180 degrees
-    frog.position.y = 0.1
+    frog.position.y = 0.2
     frog.rotation.y = Math.PI;
     frog.scale.set(1.5,1.5,1.5);
 		
@@ -55,10 +56,34 @@ loader.load(
 	function(glb)
 	{
 		lilypad = glb.scene;
-    lilypad.position.y = 0.02;
+    lilypad.position.y = 0.12;
     lilypad.scale.set(1.5,1.5,1.5);
 
 		scene.add(lilypad);
+	}
+)
+
+loader.load(
+	'/3dmodels/model/REED_MAIN.glb',
+	function(glb)
+	{
+		reed = glb.scene;
+    reed.position.set(-9, -4,5);
+    reed.scale.set(1.25,1.25,1.25);
+
+		scene.add(reed);
+	}
+)
+
+loader.load(
+	'/3dmodels/model/TONGUE.glb',
+	function(glb)
+	{
+		tongue = glb.scene;
+    tongue.position.set(0, 0.5,0);
+    tongue.scale.set(1.25,1.25,1.25);
+
+		scene.add(tongue);
 	}
 )
 
@@ -119,7 +144,7 @@ camera.rotation.set(-0.1, 0, 0);
 
 
 
-//camera pan
+//tween animations
 
 function smoothCameraPan(targetPosition, duration) {
   const initialPosition = camera.position.clone();
@@ -149,6 +174,26 @@ function smoothButton(targetPosition, duration) {
   tween.start();
 }
 
+function smoothTongueScale(targetScale, duration) {
+  const initialScale = { value: tongue.scale.z }; // Use an object to store the initial scale
+  const finalScale = { value: targetScale }; // Use an object to store the final scale
+
+  const tween = new TWEEN.Tween(initialScale)
+    .to(finalScale, duration)
+    .onUpdate(() => {
+      tongue.scale.z = initialScale.value;
+      console.log(initialScale.value);
+    });
+
+  tween.easing(TWEEN.Easing.Quadratic.Out);
+  tween.start();
+
+}
+
+
+
+
+
 
 
 
@@ -159,7 +204,7 @@ const waterGeometry = new THREE.PlaneGeometry(140, 30); // Adjust the dimensions
 const waterMaterial = new THREE.MeshBasicMaterial({ color: 0x34746b});
 const waterSurface = new THREE.Mesh(waterGeometry, waterMaterial);
 
-waterSurface.position.set(0, -11, -20); // Adjust the position as needed
+waterSurface.position.set(0, -10, -20); // Adjust the position as needed
 waterSurface.rotation.set(0,0,0)
 
 scene.add(waterSurface);
@@ -177,8 +222,8 @@ const waterSpriteMaterial = new THREE.SpriteMaterial({ map: waterTextureMap });
 
 for(let i = -70; i < 80; i+=5){
   const waterSprite = new THREE.Sprite(waterSpriteMaterial);
-  waterSprite.scale.set(5, 5, 5);
-  waterSprite.position.set(i, 6, -20);
+  waterSprite.scale.set(5, 5 , 5)    ;
+  waterSprite.position.set(i, 7, -20);
   scene.add(waterSprite);
 }
 
@@ -231,6 +276,10 @@ document.addEventListener('mousemove', (event) => {
   }
 });
 
+
+
+
+
 // Add a click event listener
 window.addEventListener('click', onClick);
 
@@ -239,9 +288,38 @@ function onClick(event) {
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
+  const mousePosition = new THREE.Vector3(-mouse.x, -mouse.y, -2);
+  let targetScale = -8;
+  // Convert mouse coordinates to world coordinates
+  if(songsView){
+    mousePosition.x += 1.5;
+    mousePosition.y -= 0.5;
+    targetScale = -9;
+  }
+ 
+  
+  // Set the frog position
+  const frogPosition = frog.position;
+
+  // Set the tongue position relative to the frog's center
+  tongue.position.set(frogPosition.x, frogPosition.y+0.4, frogPosition.z);
+
+  // Make the tongue point towards the mouse position
+  tongue.lookAt(mousePosition);
+  smoothTongueScale(targetScale, 250);
+  setTimeout(() => {
+    smoothTongueScale(0,200);
+  }, 300);
+
+
 
 
   
+
+  // Flip the tongue 180 degrees around the y-axis
+  tongue.rotation.y -= Math.PI;
+
+  // Stretch the tongue along the z-axis
 
   // Set the ray's origin and direction based on the mouse position
   raycaster.setFromCamera(mouse, camera);

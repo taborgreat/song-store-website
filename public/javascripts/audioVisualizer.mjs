@@ -56,6 +56,7 @@ loader.load("/3dmodels/model/FROG2.glb", function (glb) {
 loader.load("/3dmodels/model/LILYPAD.glb", function (glb) {
   lilypad = glb.scene;
   lilypad.position.y = 0.12;
+  //lilypad.rotation.y = ;
   lilypad.scale.set(1.5, 1.5, 1.5);
 
   scene.add(lilypad);
@@ -258,9 +259,9 @@ let directionX = 1; // 1 represents moving right, -1 represents moving left
 
 function loginButtonMove() {
   // Horizontal movement logic
-  loginButtonMesh.position.x += 0.007 * directionX;
+  loginButtonMesh.position.x += 0.002 * directionX;
   // Boundary check for horizontal movement
-  if (loginButtonMesh.position.x >= 3.5 || loginButtonMesh.position.x <= -3.5) {
+  if (loginButtonMesh.position.x >= 0.5 || loginButtonMesh.position.x <= -0.5) {
     directionX *= -1; // Reverse the direction when reaching the boundaries
   }
 }
@@ -273,7 +274,7 @@ document.addEventListener("mousemove", (event) => {
 
   // Convert mouse position to a 3D position in the scene
   const frogCoords = new THREE.Vector3(-mouseX, -mouseY, -2); // 7 is the distance from the camera
-  const lilyPadCoords = new THREE.Vector3(mouseX, -mouseY, -20); // 7 is the distance from the camera
+  const lilyPadCoords = new THREE.Vector3(-mouseX, -mouseY, -20); // 7 is the distance from the camera
 
   // Make the frog look at the mouse
   if (!songsView && !tongueShooting) {
@@ -403,6 +404,7 @@ function animate() {
 
 
   loginButtonMove();
+
   renderer.render(scene, camera);
   renderer2d.render(scene, camera);
 }

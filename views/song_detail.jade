@@ -3,7 +3,8 @@ extends layout
 block content
 
   
-
+  script.
+    const songData = !{JSON.stringify(song)};
   div(id="song-container")
     script(type='module' src='/javascripts/frogSong.mjs')
     div(id="song-info")

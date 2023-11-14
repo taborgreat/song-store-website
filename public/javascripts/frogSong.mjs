@@ -34,13 +34,17 @@ const listener = new THREE.AudioListener();
 camera.add( listener );
 
 const sound = new THREE.Audio( listener );
-
+console.log(songData)
 const audioLoader = new THREE.AudioLoader();
-audioLoader.load( 'sounds/ambient.ogg', function( buffer ) {
+audioLoader.load( songData.fileUrl, function( buffer ) {
 	sound.setBuffer( buffer );
 	sound.setLoop( true );
 	sound.setVolume( 0.5 );
 });
+
+const analyser = new THREE.AudioAnalyser( sound, 32 );
+
+
 
 let frog;
 let lilypad;
@@ -263,7 +267,7 @@ const button_PauseMaterial = new THREE.MeshBasicMaterial({
 
 
 
-button_songsMesh.position.set(0, -3, 0); // Set the position
+button_PlayMesh.position.set(0, -3, 0); // Set the position
 scene.add(button_PlayMesh); // Add to the scene
 
 
@@ -309,10 +313,15 @@ function onClick(event) {
 
   // Make the tongue point towards the mouse position
   tongue.lookAt(mousePosition);
-  if (!tongueShooting) {
+  if (!tongueShooting && !isPlaying) {
     smoothTongueScale(targetScale, 250);
     frog.scale.set(1.8 , 1.2, 1.8);
     tongueShooting = true;
+      // Flip the tongue 180 degrees around the y-axis
+  tongue.rotation.y -= Math.PI;
+  frog.children.forEach((materials) => {
+    materials.material = mouthOpenFrogMaterial; // Update with your texture or other properties
+  });
     setTimeout(() => {
       tongueShooting = false;
       smoothTongueScale(0, 200);
@@ -324,11 +333,7 @@ function onClick(event) {
     }, 280);
   }
 
-  // Flip the tongue 180 degrees around the y-axis
-  tongue.rotation.y -= Math.PI;
-  frog.children.forEach((materials) => {
-    materials.material = mouthOpenFrogMaterial; // Update with your texture or other properties
-  });
+
 
 
  
@@ -348,6 +353,7 @@ function onClick(event) {
       if (!isPlaying) {
         button_PlayMesh.material= button_PauseMaterial;
         sound.play();
+
     } else {
       button_PlayMesh.material = button_PlayMaterial;
       sound.pause();
@@ -355,7 +361,7 @@ function onClick(event) {
 
     isPlaying = !isPlaying;
   }
-}
+}}
 
 //lights
 const light = new THREE.PointLight(0xffffff, 20, 100);
@@ -372,13 +378,25 @@ smoothCameraPan(
 function animate() {
   requestAnimationFrame(animate);
 
-
+const data = analyser.getAverageFrequency();
+console.log(data)
 
   TWEEN.update();
 
   if (isPlaying) {
-    frog.lookAt(0, 0, -15);
+    frog.lookAt(0, 0, -10);
+    frog.scale.set(data/40+1.5,data/40+1.5,data/40+1.5)
+    if(data > 100){
+      const rotationAmount = data / 40;
+
+    // Apply rotation based on the sound data
+      frog.rotation.x += rotationAmount;
+     frog.rotation.y += rotationAmount;
+      frog.rotation.z += rotationAmount;
+    }
   }
+
+  // get the average frequency of the sound
 
   //animate water moving
   if (currentWaterTile < 32) {

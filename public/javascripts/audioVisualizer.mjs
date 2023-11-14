@@ -90,9 +90,7 @@ const waterTextureMap = textureLoader.load(
   "/3dmodels/textures/ANIM_waveTop.png"
 );
 
-const loginTexture = textureLoader.load(
-  "/3dmodels/textures/login.png"
-);
+const loginTexture = textureLoader.load("/3dmodels/textures/login.png");
 loginTexture.magFilter = THREE.NearestFilter;
 loginTexture.minFilter = THREE.NearestFilter;
 
@@ -151,8 +149,6 @@ label.position.set(-7.5, 2.5, 5); // Adjust the position as needed
 label.visible = false;
 scene.add(label);
 
-
-
 //camera
 
 camera.position.set(0, 2.5, 9);
@@ -201,8 +197,6 @@ function smoothTongueScale(targetScale, duration) {
   tween.start();
 }
 
-
-
 //add water
 const waterGeometry = new THREE.PlaneGeometry(140, 30); // Adjust the dimensions as needed
 const waterMaterial = new THREE.MeshBasicMaterial({ color: 0x34746b });
@@ -249,15 +243,16 @@ const button_loginMaterial = new THREE.MeshBasicMaterial({
 
 const loginButtonGeometry = new THREE.PlaneGeometry(1, 1);
 
-const loginButtonMesh = new THREE.Mesh(loginButtonGeometry, button_loginMaterial);
+const loginButtonMesh = new THREE.Mesh(
+  loginButtonGeometry,
+  button_loginMaterial
+);
 loginButtonMesh.name = "loginButton";
 
 loginButtonMesh.position.set(0, 0, 6); // Set the position
 scene.add(loginButtonMesh); // Add to the scene
 
-
 let directionX = 1; // 1 represents moving right, -1 represents moving left
-
 
 function loginButtonMove() {
   // Horizontal movement logic
@@ -267,7 +262,6 @@ function loginButtonMove() {
     directionX *= -1; // Reverse the direction when reaching the boundaries
   }
 }
-
 
 document.addEventListener("mousemove", (event) => {
   // Calculate the mouse position in normalized device coordinates
@@ -288,16 +282,13 @@ document.addEventListener("mousemove", (event) => {
 // Add a click event listener
 window.addEventListener("click", onClick);
 
-
 function onClick(event) {
-
   //prevent links from insta workin for animation delay
   if (event.pointerType) {
     // Check if the clicked element is an anchor tag within the CSS2DObject
-    if (event.target.tagName === 'A') {
+    if (event.target.tagName === "A") {
       // It's a pointer event on an anchor tag within the CSS2DObject
       const linkHref = event.target.href; // Store the href of the clicked link
-
 
       // Prevent the default behavior of the link
       event.preventDefault();
@@ -331,7 +322,7 @@ function onClick(event) {
   tongue.lookAt(mousePosition);
   if (!tongueShooting) {
     smoothTongueScale(targetScale, 250);
-    frog.scale.set(1.8 , 1.2, 1.8);
+    frog.scale.set(1.8, 1.2, 1.8);
     tongueShooting = true;
     setTimeout(() => {
       tongueShooting = false;
@@ -350,9 +341,6 @@ function onClick(event) {
     materials.material = mouthOpenFrogMaterial; // Update with your texture or other properties
   });
 
-
- 
-
   // Set the ray's origin and direction based on the mouse position
   raycaster.setFromCamera(mouse, camera);
 
@@ -364,7 +352,7 @@ function onClick(event) {
     const clickedObject = intersects[0].object;
 
     let targetPosition;
-    console.log(clickedObject)
+    console.log(clickedObject);
 
     if (clickedObject === button_songsMesh) {
       if (!songsView) {
@@ -390,11 +378,9 @@ function onClick(event) {
       }
 
       // Smoothly move the button to the target position
-      smoothButton(targetPosition, 1000);
-      
+      smoothButton(targetPosition, 700);
+
       //prevent links from instasntly working
-      
-      
     }
   }
 }
@@ -408,8 +394,6 @@ scene.add(light2);
 
 function animate() {
   requestAnimationFrame(animate);
-
-
 
   TWEEN.update();
 
@@ -432,7 +416,6 @@ function animate() {
   } else {
     currentWaterTile = 0;
   }
-
 
   loginButtonMove();
 

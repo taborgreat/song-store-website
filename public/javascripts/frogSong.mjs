@@ -31,20 +31,18 @@ window.addEventListener("resize", () => {
 });
 
 const listener = new THREE.AudioListener();
-camera.add( listener );
+camera.add(listener);
 
-const sound = new THREE.Audio( listener );
-console.log(songData)
+const sound = new THREE.Audio(listener);
+console.log(songData);
 const audioLoader = new THREE.AudioLoader();
-audioLoader.load( songData.fileUrl, function( buffer ) {
-	sound.setBuffer( buffer );
-	sound.setLoop( true );
-	sound.setVolume( 0.5 );
+audioLoader.load(songData.fileUrl, function (buffer) {
+  sound.setBuffer(buffer);
+  sound.setLoop(true);
+  sound.setVolume(0.5);
 });
 
-const analyser = new THREE.AudioAnalyser( sound, 32 );
-
-
+const analyser = new THREE.AudioAnalyser(sound, 32);
 
 let frog;
 let lilypad;
@@ -98,7 +96,6 @@ loader.load("/3dmodels/model/TONGUE.glb", function (glb) {
 
 const textureLoader = new THREE.TextureLoader();
 
-
 const buttonPlayTexture = textureLoader.load(
   "/3dmodels/textures/UI_PlayButton.png"
 );
@@ -114,8 +111,6 @@ buttonPauseTexture.minFilter = THREE.NearestFilter;
 const waterTextureMap = textureLoader.load(
   "/3dmodels/textures/ANIM_waveTop.png"
 );
-
-
 
 const mouthOpenTexture = textureLoader.load("/3dmodels/textures/FROG_T2.png");
 const mouthCloseTexture = textureLoader.load("/3dmodels/textures/FROG_T.png");
@@ -174,7 +169,7 @@ scene.add(label);
 
 //camera
 
-camera.position.set(0, 2.5, 9);
+camera.position.set(-5, 4, 9);
 camera.rotation.set(-0.1, 0, 0);
 
 //tween animations
@@ -220,8 +215,6 @@ function smoothTongueScale(targetScale, duration) {
   tween.start();
 }
 
-
-
 //add water
 const waterGeometry = new THREE.PlaneGeometry(140, 30); // Adjust the dimensions as needed
 const waterMaterial = new THREE.MeshBasicMaterial({ color: 0x34746b });
@@ -263,18 +256,8 @@ const button_PauseMaterial = new THREE.MeshBasicMaterial({
   transparent: true,
 });
 
-
-
-
-
 button_PlayMesh.position.set(0, -3, 0); // Set the position
 scene.add(button_PlayMesh); // Add to the scene
-
-
-
-
-
-
 
 document.addEventListener("mousemove", (event) => {
   // Calculate the mouse position in normalized device coordinates
@@ -304,7 +287,6 @@ function onClick(event) {
   let targetScale = -8;
   // Convert mouse coordinates to world coordinates
 
-
   // Set the frog position
   const frogPosition = frog.position;
 
@@ -315,13 +297,13 @@ function onClick(event) {
   tongue.lookAt(mousePosition);
   if (!tongueShooting && !isPlaying) {
     smoothTongueScale(targetScale, 250);
-    frog.scale.set(1.8 , 1.2, 1.8);
+    frog.scale.set(1.8, 1.2, 1.8);
     tongueShooting = true;
-      // Flip the tongue 180 degrees around the y-axis
-  tongue.rotation.y -= Math.PI;
-  frog.children.forEach((materials) => {
-    materials.material = mouthOpenFrogMaterial; // Update with your texture or other properties
-  });
+    // Flip the tongue 180 degrees around the y-axis
+    tongue.rotation.y -= Math.PI;
+    frog.children.forEach((materials) => {
+      materials.material = mouthOpenFrogMaterial; // Update with your texture or other properties
+    });
     setTimeout(() => {
       tongueShooting = false;
       smoothTongueScale(0, 200);
@@ -333,11 +315,6 @@ function onClick(event) {
     }, 280);
   }
 
-
-
-
- 
-
   // Set the ray's origin and direction based on the mouse position
   raycaster.setFromCamera(mouse, camera);
 
@@ -348,20 +325,19 @@ function onClick(event) {
   if (intersects.length > 0) {
     const clickedObject = intersects[0].object;
 
-
     if (clickedObject === button_PlayMesh) {
       if (!isPlaying) {
-        button_PlayMesh.material= button_PauseMaterial;
+        button_PlayMesh.material = button_PauseMaterial;
         sound.play();
+      } else {
+        button_PlayMesh.material = button_PlayMaterial;
+        sound.pause();
+      }
 
-    } else {
-      button_PlayMesh.material = button_PlayMaterial;
-      sound.pause();
+      isPlaying = !isPlaying;
     }
-
-    isPlaying = !isPlaying;
   }
-}}
+}
 
 //lights
 const light = new THREE.PointLight(0xffffff, 20, 100);
@@ -378,25 +354,20 @@ smoothCameraPan(
 function animate() {
   requestAnimationFrame(animate);
 
-const data = analyser.getAverageFrequency();
-console.log(data)
+  const data = analyser.getAverageFrequency();
 
   TWEEN.update();
 
   if (isPlaying) {
-    frog.lookAt(0, 0, -10);
-    frog.scale.set(data/40+1.5,data/40+1.5,data/40+1.5)
-    if(data > 100){
-      const rotationAmount = data / 40;
+    frog.scale.set(data / 80 + 1.5, data / 80 + 1.5, data / 80 + 1.5);
 
     // Apply rotation based on the sound data
-      frog.rotation.x += rotationAmount;
-     frog.rotation.y += rotationAmount;
-      frog.rotation.z += rotationAmount;
+    if (data > 100) {
+      frog.rotation.y -= data / 10000;
     }
+  } else {
+    frog.scale.set(1.5, 1.5, 1.5);
   }
-
-  // get the average frequency of the sound
 
   //animate water moving
   if (currentWaterTile < 32) {
@@ -413,7 +384,6 @@ console.log(data)
   } else {
     currentWaterTile = 0;
   }
-
 
   renderer.render(scene, camera);
   renderer2d.render(scene, camera);

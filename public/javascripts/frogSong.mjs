@@ -30,6 +30,18 @@ window.addEventListener("resize", () => {
   renderer2d.setSize(newWidth, newHeight);
 });
 
+const listener = new THREE.AudioListener();
+camera.add( listener );
+
+const sound = new THREE.Audio( listener );
+
+const audioLoader = new THREE.AudioLoader();
+audioLoader.load( 'sounds/ambient.ogg', function( buffer ) {
+	sound.setBuffer( buffer );
+	sound.setLoop( true );
+	sound.setVolume( 0.5 );
+});
+
 let frog;
 let lilypad;
 let reed;
@@ -37,7 +49,7 @@ let tongue;
 
 let tongueShooting = false;
 
-let songsView = false; //bool to see if in song view mode
+let isPlaying = false; //bool to see if in song view mode
 
 //load 3d models
 const loader = new GLTFLoader();
@@ -81,20 +93,25 @@ loader.load("/3dmodels/model/TONGUE.glb", function (glb) {
 //load 2d models
 
 const textureLoader = new THREE.TextureLoader();
-const buttonTexture = textureLoader.load(
-  "/3dmodels/textures/UI_SongsButton.png"
+
+
+const buttonPlayTexture = textureLoader.load(
+  "/3dmodels/textures/UI_PlayButton.png"
 );
-buttonTexture.magFilter = THREE.NearestFilter;
-buttonTexture.minFilter = THREE.NearestFilter;
+buttonPlayTexture.magFilter = THREE.NearestFilter;
+buttonPlayTexture.minFilter = THREE.NearestFilter;
+
+const buttonPauseTexture = textureLoader.load(
+  "/3dmodels/textures/UI_PauseButton.png"
+);
+buttonPauseTexture.magFilter = THREE.NearestFilter;
+buttonPauseTexture.minFilter = THREE.NearestFilter;
+
 const waterTextureMap = textureLoader.load(
   "/3dmodels/textures/ANIM_waveTop.png"
 );
 
-const loginTexture = textureLoader.load(
-  "/3dmodels/textures/login.png"
-);
-loginTexture.magFilter = THREE.NearestFilter;
-loginTexture.minFilter = THREE.NearestFilter;
+
 
 const mouthOpenTexture = textureLoader.load("/3dmodels/textures/FROG_T2.png");
 const mouthCloseTexture = textureLoader.load("/3dmodels/textures/FROG_T.png");
@@ -145,13 +162,11 @@ renderer2d.domElement.style.position = "absolute";
 renderer2d.domElement.style.top = "0";
 document.body.appendChild(renderer2d.domElement);
 
-const textDiv = document.getElementById("song-list");
+const textDiv = document.getElementById("song-info");
 const label = new CSS2DObject(textDiv);
-label.position.set(-7.5, 2.5, 5); // Adjust the position as needed
-label.visible = false;
+label.position.set(0, -10, 0.1); // Adjust the position as needed
+
 scene.add(label);
-
-
 
 //camera
 
@@ -230,43 +245,31 @@ var mouse = new THREE.Vector2();
 
 //buttons
 
-const button_songsMaterial = new THREE.MeshBasicMaterial({
-  map: buttonTexture,
+const button_PlayMaterial = new THREE.MeshBasicMaterial({
+  map: buttonPlayTexture,
   transparent: true,
 });
-const buttonGeometry = new THREE.PlaneGeometry(3, 1);
+const buttonGeometry = new THREE.PlaneGeometry(1, 1);
 
-const button_songsMesh = new THREE.Mesh(buttonGeometry, button_songsMaterial);
-button_songsMesh.name = "songButton";
+const button_PlayMesh = new THREE.Mesh(buttonGeometry, button_PlayMaterial);
+button_PlayMesh.name = "playButton";
 
-button_songsMesh.position.set(-3.2, 3.5, 5); // Set the position
-scene.add(button_songsMesh); // Add to the scene
-
-const button_loginMaterial = new THREE.MeshBasicMaterial({
-  map: loginTexture,
+const button_PauseMaterial = new THREE.MeshBasicMaterial({
+  map: buttonPauseTexture,
   transparent: true,
 });
 
-const loginButtonGeometry = new THREE.PlaneGeometry(1, 1);
-
-const loginButtonMesh = new THREE.Mesh(loginButtonGeometry, button_loginMaterial);
-loginButtonMesh.name = "loginButton";
-
-loginButtonMesh.position.set(0, 0, 6); // Set the position
-scene.add(loginButtonMesh); // Add to the scene
 
 
-let directionX = 1; // 1 represents moving right, -1 represents moving left
 
 
-function loginButtonMove() {
-  // Horizontal movement logic
-  loginButtonMesh.position.x += 0.002 * directionX;
-  // Boundary check for horizontal movement
-  if (loginButtonMesh.position.x >= 0.5 || loginButtonMesh.position.x <= -0.5) {
-    directionX *= -1; // Reverse the direction when reaching the boundaries
-  }
-}
+button_songsMesh.position.set(0, -3, 0); // Set the position
+scene.add(button_PlayMesh); // Add to the scene
+
+
+
+
+
 
 
 document.addEventListener("mousemove", (event) => {
@@ -279,7 +282,7 @@ document.addEventListener("mousemove", (event) => {
   const lilyPadCoords = new THREE.Vector3(-mouseX, -mouseY, -20); // 7 is the distance from the camera
 
   // Make the frog look at the mouse
-  if (!songsView && !tongueShooting) {
+  if (!isPlaying && !tongueShooting) {
     lilypad.lookAt(lilyPadCoords);
     frog.lookAt(frogCoords);
   }
@@ -288,26 +291,7 @@ document.addEventListener("mousemove", (event) => {
 // Add a click event listener
 window.addEventListener("click", onClick);
 
-
 function onClick(event) {
-
-  //prevent links from insta workin for animation delay
-  if (event.pointerType) {
-    // Check if the clicked element is an anchor tag within the CSS2DObject
-    if (event.target.tagName === 'A') {
-      // It's a pointer event on an anchor tag within the CSS2DObject
-      const linkHref = event.target.href; // Store the href of the clicked link
-
-
-      // Prevent the default behavior of the link
-      event.preventDefault();
-
-      setTimeout(() => {
-        window.location.href = linkHref; // Redirect to the stored link after the delay
-      }, 1000); // Your desired delay time in milliseconds
-    }
-  }
-
   // Calculate the mouse coordinates based on the event
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
@@ -315,11 +299,7 @@ function onClick(event) {
   const mousePosition = new THREE.Vector3(-mouse.x, -mouse.y, -2);
   let targetScale = -8;
   // Convert mouse coordinates to world coordinates
-  if (songsView) {
-    mousePosition.x += 1.5;
-    mousePosition.y -= 0.5;
-    targetScale = -9;
-  }
+
 
   // Set the frog position
   const frogPosition = frog.position;
@@ -363,39 +343,17 @@ function onClick(event) {
   if (intersects.length > 0) {
     const clickedObject = intersects[0].object;
 
-    let targetPosition;
-    console.log(clickedObject)
 
-    if (clickedObject === button_songsMesh) {
-      if (!songsView) {
-        label.visible = true;
-        targetPosition = new THREE.Vector3(-7, 5, 6);
-
-        songsView = !songsView;
-
-        smoothCameraPan(
-          new THREE.Vector3(-5, 4, 9), // Target position
-          1000
-        ); // Duration in milliseconds
-      } else {
-        label.visible = false;
-        targetPosition = new THREE.Vector3(-3.2, 3.5, 5);
-
-        songsView = !songsView;
-
-        smoothCameraPan(
-          new THREE.Vector3(0, 2.5, 9), // Target position
-          1000
-        ); // Duration in milliseconds
-      }
-
-      // Smoothly move the button to the target position
-      smoothButton(targetPosition, 1000);
-      
-      //prevent links from instasntly working
-      
-      
+    if (clickedObject === button_PlayMesh) {
+      if (!isPlaying) {
+        button_PlayMesh.material= button_PauseMaterial;
+        sound.play();
+    } else {
+      button_PlayMesh.material = button_PlayMaterial;
+      sound.pause();
     }
+
+    isPlaying = !isPlaying;
   }
 }
 
@@ -406,6 +364,11 @@ scene.add(light);
 const light2 = new THREE.AmbientLight(0x404040, 0.04); // soft white light
 scene.add(light2);
 
+smoothCameraPan(
+  new THREE.Vector3(0, 2.5, 9), // Target position
+  1000
+);
+
 function animate() {
   requestAnimationFrame(animate);
 
@@ -413,8 +376,8 @@ function animate() {
 
   TWEEN.update();
 
-  if (songsView) {
-    frog.lookAt(12, -6, -15);
+  if (isPlaying) {
+    frog.lookAt(0, 0, -15);
   }
 
   //animate water moving
@@ -433,8 +396,6 @@ function animate() {
     currentWaterTile = 0;
   }
 
-
-  loginButtonMove();
 
   renderer.render(scene, camera);
   renderer2d.render(scene, camera);

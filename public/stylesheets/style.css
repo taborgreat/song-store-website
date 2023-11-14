@@ -23,7 +23,7 @@ canvas {
   display: block;
 }
 
-#song-list {
+#song-list, #song-info {
   position: fixed;
   color: white;
   font-size: 3rem;

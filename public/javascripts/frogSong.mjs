@@ -163,7 +163,7 @@ document.body.appendChild(renderer2d.domElement);
 
 const textDiv = document.getElementById("song-info");
 const label = new CSS2DObject(textDiv);
-label.position.set(0, -10, 0.1); // Adjust the position as needed
+label.position.set(0, -9, 0.1); // Adjust the position as needed
 
 scene.add(label);
 
@@ -256,7 +256,7 @@ const button_PauseMaterial = new THREE.MeshBasicMaterial({
   transparent: true,
 });
 
-button_PlayMesh.position.set(0, -3, 0); // Set the position
+button_PlayMesh.position.set(0, -2.5, 0); // Set the position
 scene.add(button_PlayMesh); // Add to the scene
 
 document.addEventListener("mousemove", (event) => {

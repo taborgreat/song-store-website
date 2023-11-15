@@ -283,8 +283,8 @@ document.addEventListener("mousemove", (event) => {
 window.addEventListener("click", onClick);
 
 function onClick(event) {
+
   //prevent links from insta workin for animation delay
-  if (event.pointerType) {
     // Check if the clicked element is an anchor tag within the CSS2DObject
     if (event.target.tagName === "A") {
       // It's a pointer event on an anchor tag within the CSS2DObject
@@ -295,9 +295,9 @@ function onClick(event) {
 
       setTimeout(() => {
         window.location.href = linkHref; // Redirect to the stored link after the delay
-      }, 1000); // Your desired delay time in milliseconds
+      }, 600); // Your desired delay time in milliseconds
     }
-  }
+  
 
   // Calculate the mouse coordinates based on the event
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;

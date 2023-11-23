@@ -5,6 +5,8 @@ import {
   CSS2DObject,
 } from "three/addons/renderers/CSS2DRenderer.js";
 import { TWEEN } from "https://unpkg.com/three@0.139.0/examples/jsm/libs/tween.module.min.js";
+import {connectWallet} from './metamaskConnect.js';
+
 
 // Create a scene, camera, and renderer
 const scene = new THREE.Scene();
@@ -15,25 +17,46 @@ const camera = new THREE.PerspectiveCamera(
   2000
 );
 
+
 //window size
 const renderer = new THREE.WebGLRenderer();
 
+renderer.setPixelRatio( window.devicePixelRatio );
+
+
 renderer.setSize(window.innerWidth, window.innerHeight);
+
 document.body.appendChild(renderer.domElement);
 
 window.addEventListener("resize", () => {
   const newWidth = window.innerWidth;
   const newHeight = window.innerHeight;
-  camera.aspect = newWidth / newHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(newWidth, newHeight);
-  renderer2d.setSize(newWidth, newHeight);
+
+  let maxHeight = 400;
+
+  if (newHeight > maxHeight){
+    camera.aspect = newWidth / newHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(newWidth, newHeight);
+    renderer2d.setSize(newWidth, newHeight);
+  }
+  else {
+    camera.aspect = newWidth / maxHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(newWidth, maxHeight);
+    renderer2d.setSize(newWidth, maxHeight);
+  }
+
+ 
+
+  
 });
 
 let frog;
 let lilypad;
 let reed;
 let tongue;
+let background;
 
 let tongueShooting = false;
 
@@ -77,6 +100,26 @@ loader.load("/3dmodels/model/TONGUE.glb", function (glb) {
 
   scene.add(tongue);
 });
+
+loader.load("/3dmodels/model/BACKGROUND.glb", function (glb) {
+  background = glb.scene;
+  background.scale.set(2,2,2)
+  background.position.set(-40, 9, -40);
+  background.userData.width = -39.9;
+  background.rotation.y = 3.14;
+  background.rotation.x = 0.4;
+  scene.add(background);
+
+  //make the background
+for (let i = 0; i < 10; i++) {
+  const backgroundCopy = background.clone();
+  backgroundCopy.position.x = i * background.userData.width + 80; // Assuming userData.width is set in the loaded model
+  scene.add(backgroundCopy);
+  console.log(backgroundCopy)
+}
+});
+
+
 
 //load 2d models
 
@@ -198,12 +241,12 @@ function smoothTongueScale(targetScale, duration) {
 }
 
 //add water
-const waterGeometry = new THREE.PlaneGeometry(140, 30); // Adjust the dimensions as needed
+const waterGeometry = new THREE.PlaneGeometry(400, 70); // Adjust the dimensions as needed
 const waterMaterial = new THREE.MeshBasicMaterial({ color: 0x34746b });
 const waterSurface = new THREE.Mesh(waterGeometry, waterMaterial);
 
-waterSurface.position.set(0, -10, -20); // Adjust the position as needed
-waterSurface.rotation.set(0, 0, 0);
+waterSurface.position.set(0, 0, -10); // Adjust the position as needed
+waterSurface.rotation.set(-Math.PI/2, 0, 0);
 
 scene.add(waterSurface);
 
@@ -213,10 +256,10 @@ const waterSpriteMaterial = new THREE.SpriteMaterial({ map: waterTextureMap });
 
 for (let i = -70; i < 80; i += 5) {
   const waterSprite = new THREE.Sprite(waterSpriteMaterial);
-  waterSprite.scale.set(5, 5, 5);
-  waterSprite.position.set(i, 7, -20);
+  waterSprite.scale.set(5, 0.7, 5);
+  waterSprite.position.set(i, 1.4, -21.5);
   scene.add(waterSprite);
-}
+} 
 
 // Create a raycaster to detect clicks
 var raycaster = new THREE.Raycaster();
@@ -298,6 +341,7 @@ function onClick(event) {
       }, 600); // Your desired delay time in milliseconds
     }
   
+ 
 
   // Calculate the mouse coordinates based on the event
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -354,6 +398,9 @@ function onClick(event) {
     let targetPosition;
     console.log(clickedObject);
 
+    if(clickedObject === loginButtonMesh){
+        connectWallet();
+    }
     if (clickedObject === button_songsMesh) {
       if (!songsView) {
         label.visible = true;
@@ -385,24 +432,10 @@ function onClick(event) {
   }
 }
 
-//lights
-const light = new THREE.PointLight(0xffffff, 20, 100);
-light.position.set(10, 10, 10);
-scene.add(light);
-const light2 = new THREE.AmbientLight(0x404040, 0.04); // soft white light
-scene.add(light2);
 
-function animate() {
-  requestAnimationFrame(animate);
-
-  TWEEN.update();
-
-  if (songsView) {
-    frog.lookAt(12, -6, -15);
-  }
-
-  //animate water moving
-  if (currentWaterTile < 32) {
+function waveAnimate(){
+   //animate water moving
+   if (currentWaterTile < 32) {
     const waterOffsetX =
       (currentWaterTile % waterTilesHorizontal) / waterTilesHorizontal;
     const waterOffsetY =
@@ -416,6 +449,36 @@ function animate() {
   } else {
     currentWaterTile = 0;
   }
+}
+
+//lights
+const light = new THREE.PointLight(0xffffff, 20, 100);
+light.position.set(10, 10, 10);
+scene.add(light);
+const light2 = new THREE.AmbientLight(0x404040, 0.04); // soft white light
+scene.add(light2);
+
+//variable to hold when next wave comes
+let nextWave = 0;
+
+function animate() {
+  requestAnimationFrame(animate);
+
+  TWEEN.update();
+
+  if (songsView) {
+    frog.lookAt(12, -6, -15);
+  }
+
+
+  //increment wave frame on speed control
+  let waveSpeed = 0.5;
+  nextWave += waveSpeed;
+  if(nextWave >=1){
+    waveAnimate();
+    nextWave=0;
+  }
+
 
   loginButtonMove();
 

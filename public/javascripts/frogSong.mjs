@@ -18,6 +18,9 @@ const camera = new THREE.PerspectiveCamera(
 //window size
 const renderer = new THREE.WebGLRenderer();
 
+renderer.setPixelRatio( window.devicePixelRatio );
+
+
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
@@ -48,6 +51,7 @@ let frog;
 let lilypad;
 let reed;
 let tongue;
+let background;
 
 let tongueShooting = false;
 
@@ -91,6 +95,26 @@ loader.load("/3dmodels/model/TONGUE.glb", function (glb) {
 
   scene.add(tongue);
 });
+
+loader.load("/3dmodels/model/BACKGROUND.glb", function (glb) {
+  background = glb.scene;
+  background.scale.set(2,2,2)
+  background.position.set(-40, 9, -40);
+  background.userData.width = -39.9;
+  background.rotation.y = 3.14;
+  background.rotation.x = 0.4;
+  scene.add(background);
+
+  //make the background
+for (let i = 0; i < 10; i++) {
+  const backgroundCopy = background.clone();
+  backgroundCopy.position.x = i * background.userData.width + 80; // Assuming userData.width is set in the loaded model
+  scene.add(backgroundCopy);
+  console.log(backgroundCopy)
+}
+});
+
+
 
 //load 2d models
 
@@ -216,12 +240,12 @@ function smoothTongueScale(targetScale, duration) {
 }
 
 //add water
-const waterGeometry = new THREE.PlaneGeometry(140, 30); // Adjust the dimensions as needed
+const waterGeometry = new THREE.PlaneGeometry(400, 70); // Adjust the dimensions as needed
 const waterMaterial = new THREE.MeshBasicMaterial({ color: 0x34746b });
 const waterSurface = new THREE.Mesh(waterGeometry, waterMaterial);
 
-waterSurface.position.set(0, -10, -20); // Adjust the position as needed
-waterSurface.rotation.set(0, 0, 0);
+waterSurface.position.set(0, 0, -10); // Adjust the position as needed
+waterSurface.rotation.set(-Math.PI/2, 0, 0);
 
 scene.add(waterSurface);
 
@@ -229,11 +253,14 @@ const waterSpriteMaterial = new THREE.SpriteMaterial({ map: waterTextureMap });
 
 // Add the sprites to the scene
 
+const waterSprites = [];
+
 for (let i = -70; i < 80; i += 5) {
   const waterSprite = new THREE.Sprite(waterSpriteMaterial);
-  waterSprite.scale.set(5, 5, 5);
-  waterSprite.position.set(i, 7, -20);
+  waterSprite.scale.set(5, 0.7, 5);
+  waterSprite.position.set(i, 1.4, -21.5);
   scene.add(waterSprite);
+  waterSprites.push(waterSprite);
 }
 
 // Create a raycaster to detect clicks
@@ -256,7 +283,7 @@ const button_PauseMaterial = new THREE.MeshBasicMaterial({
   transparent: true,
 });
 
-button_PlayMesh.position.set(0, -2.5, 0); // Set the position
+button_PlayMesh.position.set(0, 0.3, 4); // Set the position
 scene.add(button_PlayMesh); // Add to the scene
 
 document.addEventListener("mousemove", (event) => {
@@ -332,6 +359,7 @@ function onClick(event) {
       } else {
         button_PlayMesh.material = button_PlayMaterial;
         sound.pause();
+        frog.lookAt(0,0,-5)
       }
 
       isPlaying = !isPlaying;
@@ -351,6 +379,30 @@ smoothCameraPan(
   1000
 );
 
+
+function waveAnimate(){
+  //animate water moving
+  if (currentWaterTile < 32) {
+   const waterOffsetX =
+     (currentWaterTile % waterTilesHorizontal) / waterTilesHorizontal;
+   const waterOffsetY =
+     (waterTilesVertical -
+       Math.floor(currentWaterTile / waterTilesHorizontal) -
+       1) /
+     waterTilesVertical;
+   waterTextureMap.offset.x = waterOffsetX;
+   waterTextureMap.offset.y = waterOffsetY;
+   currentWaterTile += 1;
+
+   
+ } else {
+   currentWaterTile = 0;
+ }
+}
+//variable to hold when next wave comes
+let nextWave = 0;
+
+
 function animate() {
   requestAnimationFrame(animate);
 
@@ -359,31 +411,39 @@ function animate() {
   TWEEN.update();
 
   if (isPlaying) {
-    frog.scale.set(data / 80 + 1.5, data / 80 + 1.5, data / 80 + 1.5);
+    frog.scale.set(data / 200 + 1.5, data / 200 + 1.5, data / 200 + 1.5);
+
+      //animate water moving
+  let waveSpeed = data/700 + 0.15;
+  nextWave += waveSpeed;
+  if(nextWave >=1){
+    waveAnimate();
+    nextWave=0;
+  }
+  waterSprites.forEach((waterSprite, index) => {
+    // Adjust the scale of each water sprite based on the audio data
+    waterSprite.scale.set((5+data/10000),0.7+ data/220,5);
+  
+  });
 
     // Apply rotation based on the sound data
-    if (data > 100) {
-      frog.rotation.y -= data / 10000;
+    if (data > 50) {
+      frog.rotation.y -= data / 7000;
+      lilypad.rotation.y += data / 7000;
+      
+    }
+    else{
+      frog.rotation.y -=0.001;
+      lilypad.rotation.y +=0.001;
     }
   } else {
     frog.scale.set(1.5, 1.5, 1.5);
+
+    waveAnimate();
   }
 
-  //animate water moving
-  if (currentWaterTile < 32) {
-    const waterOffsetX =
-      (currentWaterTile % waterTilesHorizontal) / waterTilesHorizontal;
-    const waterOffsetY =
-      (waterTilesVertical -
-        Math.floor(currentWaterTile / waterTilesHorizontal) -
-        1) /
-      waterTilesVertical;
-    waterTextureMap.offset.x = waterOffsetX;
-    waterTextureMap.offset.y = waterOffsetY;
-    currentWaterTile += 1;
-  } else {
-    currentWaterTile = 0;
-  }
+
+
 
   renderer.render(scene, camera);
   renderer2d.render(scene, camera);
